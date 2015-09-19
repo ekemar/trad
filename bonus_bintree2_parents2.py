@@ -7,6 +7,7 @@ class TreeNode:
         self.right = ri
         self.parentFromLeft = None
         self.parentFromRight = None
+        random.seed(42)
         
     def height(self):
         if self.left == None and not self.right:
@@ -20,10 +21,10 @@ class TreeNode:
             
         return max(self.left.height(), self.right.height()) + 1
     
-    #def __str__(self):
-        #return "<TreeNode with item=%s>" % self.item
-        #return "<%s, l=%s, r=%s>" % (self.item, self.left, self.right)
-        #return "%s\n <%s,%s>" % (self.item, self.left, self.right)
+    def __str__(self):
+        return "<TreeNode with item=%s>" % self.item
+        return "<%s, l=%s, r=%s>" % (self.item, self.left, self.right)
+        return "%s\n <%s,%s>" % (self.item, self.left, self.right)
         
     def __str(self):
         return self.__repr() + "HEJ"
@@ -60,27 +61,39 @@ class Bintree:
     
     def _deletenode(self, n):
         #print("in _deletenode, trying to delete node %s" % n)
+        print("in _deletenode, trying to delete node with value %s" % n.item)
         
         if n.right is None and n.left is None:
             print("inga barn finns")
             if n.parentFromLeft:
+                print("n.parentFromLeft: %s, n: %s" % (n.parentFromLeft, n))
                 n.parentFromLeft.left = None
             elif n.parentFromRight:
+                print("n.parentFromRight: %s, n: %s" % (n.parentFromRight, n))
                 n.parentFromRight.right = None
             n = None
+            
         elif n.right is None:
-            print("höger finns inte")
+            print("höger finns inte (n=%s)" % n)
             if n.parentFromRight:
                 n.parentFromRight.right = n.left
+                #n.left.parentFromLeft, n.left.parentFromRight = n.parentFromLeft, n.parentFromRight
             elif n.parentFromLeft:
                 n.parentFromLeft.left = n.left
+                #n.right.parentFromLeft, n.right.parentFromRight = n.parentFromLeft, n.parentFromRight
             n = n.left
         elif n.left is None:
-            print("vänster finns inte")
+            print("vänster finns inte (n=%s)" % n)
             if n.parentFromRight:
-                n.parentFromRight.right = n.right
+                print("n.parentFromRight: %s" % n.parentFromRight)
+                n.parentFromRight.right = n.left
+                #n.left.parentFromLeft, n.left.parentFromRight = n.parentFromLeft, n.parentFromRight
+                
             elif n.parentFromLeft:
+                print("n.parentFromLeft: %s" % n.parentFromLeft)
                 n.parentFromLeft.left = n.right
+                #n.right.parentFromLeft, n.right.parentFromRight = n.parentFromLeft, n.parentFromRight
+                
             n = n.right
         else: #both left and right node exists: n.left and n.right isn't None
             goRight = random.choice([True, False])
@@ -96,6 +109,7 @@ class Bintree:
                 while target.right:
                     target = target.right
                 
+            print("found target for deletion %s" % target)
             n.item = target.item
             self._deletenode(target)
         #print("after deletion: %s" % n)
@@ -105,6 +119,9 @@ class Bintree:
         n = self.exists(x)
         if n:
             ret = self._deletenode(n)
+            
+        self.removeDuplicates()
+        
         return ret
         
     def exists(self, x):
@@ -155,3 +172,25 @@ class Bintree:
             if n.right:
                 s.append(n.right)
         print("width first: ", ", ".join(map(str, items)))
+        
+    
+    def removeDuplicates(self):
+        newTree = Bintree()
+        s = [self.root]
+        while s:
+            n = s.pop(0)
+            if newTree.exists(n.item): #item already exists
+                print("in removeDuplicates, removing n.item=%s" % n.item)
+                if n.parentFromLeft:
+                    n.parentFromLeft.left = None
+                if n.parentFromRight:
+                    n.parentFromRight.right = None
+                n = None
+                return
+            
+            newTree.put(n.item)
+            
+            if n.left:
+                s.append(n.left)
+            if n.right:
+                s.append(n.right)
